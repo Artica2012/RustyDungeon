@@ -1,12 +1,13 @@
 use std::collections::HashMap;
+
 use bevy::app::App;
 use bevy::prelude::{Entity, OnEnter, Plugin, Resource};
+
 use crate::states::MainState;
 use crate::vectors::Vector2Int;
 
 pub mod components;
 mod systems;
-
 
 pub struct BoardPlugin;
 
@@ -18,6 +19,6 @@ impl Plugin for BoardPlugin {
 }
 
 #[derive(Default, Resource)]
-pub struct CurrentBoard{
-    pub tiles: HashMap<Vector2Int, Entity>
+pub struct CurrentBoard {
+    pub tiles: HashMap<Vector2Int, Entity>,
 }
