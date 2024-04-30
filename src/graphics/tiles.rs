@@ -6,9 +6,11 @@ use super::{GraphicsAssets, TILE_SIZE};
 
 pub fn spawn_tile_renderer(
     mut commands: Commands,
-    query: Query<(Entity, &Position), Added<Tile>>,
+    query: Query<(Entity, &Position), With<Tile>>,
     assets: Res<GraphicsAssets>,
 ) {
+    // println!{"Starting to spawn tiles"}
+    // println!("{:?}", query);
     for (entity, position) in query.iter() {
         let v = Vec3::new(
             TILE_SIZE * position.v.x as f32,
@@ -16,6 +18,7 @@ pub fn spawn_tile_renderer(
             0.,
         );
 
+        // println!("Spawning Tile Entity");
         commands.entity(entity).insert(SpriteSheetBundle {
             atlas: TextureAtlas {
                 layout: assets.atlas.clone(),
