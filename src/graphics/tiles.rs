@@ -2,24 +2,30 @@ use bevy::prelude::*;
 
 use crate::board::components::{Position, Tile};
 
-use super::{GraphicsAssets, TILE_SIZE};
+use super::{GraphicsAssets, TILE_Z};
 
 pub fn spawn_tile_renderer(
     mut commands: Commands,
     query: Query<(Entity, &Position), With<Tile>>,
     assets: Res<GraphicsAssets>,
 ) {
-    // println!{"Starting to spawn tiles"}
-    // println!("{:?}", query);
+    println! {"Starting to spawn tiles"}
+    println!("{:?}", query);
     for (entity, position) in query.iter() {
-        let v = Vec3::new(
-            TILE_SIZE * position.v.x as f32,
-            TILE_SIZE * position.v.y as f32,
-            0.,
-        );
+        let v = super::get_world_position(&position, TILE_Z);
+        println!("{:?}", v);
 
-        // println!("Spawning Tile Entity");
+        println!("Spawning Tile Entity");
         commands.entity(entity).insert(SpriteSheetBundle {
+            sprite: Sprite {
+                color: Color::GOLD,
+
+                flip_x: false,
+                flip_y: false,
+                custom_size: Some(Vec2::splat(32.)),
+                rect: None,
+                anchor: Default::default(),
+            },
             atlas: TextureAtlas {
                 layout: assets.atlas.clone(),
                 index: 177,
