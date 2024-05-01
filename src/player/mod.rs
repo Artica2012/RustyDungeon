@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+use crate::actions::Actor;
 use crate::board::components::Position;
 use crate::pieces::components::Piece;
 use crate::states::MainState;
@@ -25,5 +26,6 @@ fn spawn_player(mut commands: Commands) {
         Position {
             v: Vector2Int::new(0, 0),
         },
+        Actor { 0: None },
     ));
 }

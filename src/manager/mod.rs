@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::actions::{ActionsCompleteEvent, TickEvent};
+use crate::actions::{ActionsCompleteEvent, InvalidPlayerActionEvent, TickEvent};
 use crate::graphics::GraphicsWaitEvent;
 use crate::input::PlayerInputReadyEvent;
 use crate::states::{GameState, MainState};
@@ -18,11 +18,17 @@ impl Plugin for ManagerPlugin {
             .add_systems(
                 Update,
                 turn_update_end.run_if(on_event::<ActionsCompleteEvent>()),
-            );
+            )
+            .add_systems(
+                Update,
+                turn_update_cancel.run_if(on_event::<InvalidPlayerActionEvent>()),
+            )
+            .add_systems(Update, tick.run_if(in_state(GameState::TurnUpdate)));
     }
 }
 
 fn game_start(mut next_state: ResMut<NextState<GameState>>) {
+    println!("Starting Game");
     next_state.set(GameState::PlayerInput);
 }
 
