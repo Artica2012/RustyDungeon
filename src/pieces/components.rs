@@ -4,3 +4,6 @@ use bevy::prelude::*;
 pub struct Piece {
     pub kind: String,
 }
+
+#[derive(Component)]
+pub struct Walk;
