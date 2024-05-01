@@ -1,6 +1,7 @@
 use bevy::app::App;
 use bevy::app::Update;
 use bevy::asset::Handle;
+use bevy::ecs::event::Event;
 use bevy::prelude::{Image, IntoSystemConfigs, OnEnter, Plugin, Resource, Vec3};
 use bevy::sprite::TextureAtlasLayout;
 
@@ -32,8 +33,7 @@ pub struct GraphicsPlugin;
 
 impl Plugin for GraphicsPlugin {
     fn build(&self, app: &mut App) {
-        app
-            // .add_systems(Startup, assets::load_assets)
+        app.add_event::<GraphicsWaitEvent>()
             .add_systems(OnEnter(MainState::Game), pieces::spawn_piece_renderer)
             .add_systems(OnEnter(MainState::Game), tiles::spawn_tile_renderer)
             .add_systems(Update, update_piece_position.in_set(MainState::Game));
@@ -47,3 +47,6 @@ pub fn get_world_position(position: &Position, z: f32) -> Vec3 {
         z,
     )
 }
+
+#[derive(Event)]
+pub struct GraphicsWaitEvent;
