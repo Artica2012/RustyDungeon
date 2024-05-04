@@ -59,7 +59,7 @@ fn player_position(
             entity: entity,
             destination: position.v + dir,
         };
-        actor.0 = Some(Box::new(action));
+        actor.0 = vec![(Box::new(action), 0)];
         queue.0 = VecDeque::from([entity]);
         ev_input.send(PlayerInputReadyEvent);
     }

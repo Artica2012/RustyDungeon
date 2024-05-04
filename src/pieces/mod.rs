@@ -3,7 +3,7 @@ use bevy::prelude::{Commands, OnExit};
 
 use crate::actions::Actor;
 use crate::board::components::Position;
-use crate::pieces::components::{Piece, Walk};
+use crate::pieces::components::{Occupier, Piece, Walk};
 use crate::states::MainState;
 use crate::vectors::Vector2Int;
 
@@ -28,6 +28,7 @@ pub fn spawn_npcs(mut commands: Commands) {
             v: Vector2Int::new(3, 5),
         },
         Walk,
+        Occupier,
     ));
     commands.spawn((
         Actor::default(),
@@ -38,5 +39,6 @@ pub fn spawn_npcs(mut commands: Commands) {
             v: Vector2Int::new(5, 5),
         },
         Walk,
+        Occupier,
     ));
 }

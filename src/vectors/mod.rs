@@ -1,6 +1,8 @@
 use std::ops::{Add, AddAssign, Div, Mul, Sub, SubAssign};
 
-#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash)]
+pub(crate) mod utils;
+
+#[derive(Copy, Clone, Debug, Default, Ord, PartialOrd, PartialEq, Eq, Hash)]
 pub struct Vector2Int {
     pub x: i32,
     pub y: i32,
@@ -16,8 +18,11 @@ impl Vector2Int {
         Self { x, y }
     }
 
-    pub fn manhattan(&self, other: Vector2Int) -> i32 {
-        (self.x - other.x).abs() + (self.y - other.y).abs()
+    pub fn manhattan(&self, other: Vector2Int) -> u32 {
+        ((self.x - other.x).abs() + (self.y - other.y).abs())
+            .abs()
+            .try_into()
+            .unwrap()
     }
 }
 

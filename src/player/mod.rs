@@ -26,6 +26,6 @@ fn spawn_player(mut commands: Commands) {
         Position {
             v: Vector2Int::new(0, 0),
         },
-        Actor { 0: None },
+        Actor::default(),
     ));
 }

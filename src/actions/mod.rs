@@ -29,7 +29,7 @@ pub trait Action: Send + Sync {
 }
 
 #[derive(Component, Default)]
-pub struct Actor(pub Option<Box<dyn Action>>);
+pub struct Actor(pub Vec<(Box<dyn Action>, i32)>);
 
 #[derive(Default, Resource)]
 pub struct ActorQueue(pub VecDeque<Entity>);

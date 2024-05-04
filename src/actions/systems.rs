@@ -6,9 +6,14 @@ use crate::actions::{
     ActionsCompleteEvent, Actor, ActorQueue, InvalidPlayerActionEvent, NextActorEvent,
 };
 use crate::board::components::Position;
-use crate::pieces::components::Walk;
+use crate::board::CurrentBoard;
+use crate::pieces::components::{Occupier, Walk};
 use crate::player::Player;
+use crate::vectors::utils::a_star_pathfinding;
 use crate::vectors::ORTHO_DIRECTIONS;
+
+pub const MOVE_SCORE: i32 = 50;
+pub const ATTACK_SCORE: i32 = 100;
 
 pub fn process_action_queue(world: &mut World) {
     let Some(mut queue) = world.get_resource_mut::<ActorQueue>() else {
@@ -21,11 +26,19 @@ pub fn process_action_queue(world: &mut World) {
     let Some(mut actor) = world.get_mut::<Actor>(entity) else {
         return;
     };
-    let Some(action) = actor.0.take() else {
-        return;
-    };
+    // clear the Actor vec
+    let mut possible_actions = actor.0.drain(..).collect::<Vec<_>>();
+    // highest score first
+    possible_actions.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
 
-    if !action.execute(world) && world.get::<Player>(entity).is_some() {
+    let mut success = false;
+    for action in possible_actions {
+        if action.0.execute(world) {
+            success = true;
+            break;
+        }
+    }
+    if !success && world.get::<Player>(entity).is_some() {
         world.send_event(InvalidPlayerActionEvent);
         return;
     }
@@ -39,15 +52,53 @@ pub fn populate_actor_queue(
     queue.0.extend(query.iter());
 }
 
-pub fn plan_walk(mut query: Query<(&Position, &mut Actor), With<Walk>>, queue: Res<ActorQueue>) {
+pub fn plan_walk(
+    mut query: Query<(&Position, &mut Actor), With<Walk>>,
+    queue: Res<ActorQueue>,
+    player_query: Query<&Position, With<Player>>,
+    occupier_query: Query<&Position, With<Occupier>>,
+    board: Res<CurrentBoard>,
+) {
     let Some(entity) = queue.0.get(0) else { return };
     let Ok((position, mut actor)) = query.get_mut(*entity) else {
         return;
     };
-    let mut rng = rand::thread_rng();
-    let dir = ORTHO_DIRECTIONS.choose(&mut rng).unwrap();
-    actor.0 = Some(Box::new(WalkAction {
-        entity: *entity,
-        destination: position.v + *dir,
-    }));
+    let Ok(player_position) = player_query.get_single() else {
+        return;
+    };
+    // get all possible move targets
+    let positions = ORTHO_DIRECTIONS
+        .iter()
+        .map(|d| *d + position.v)
+        .collect::<Vec<_>>();
+    // find possible path to the player
+    // let path_to_player = find_path(
+    let path_to_player = a_star_pathfinding(
+        position.v,
+        player_position.v,
+        &board.tiles.keys().cloned().collect(),
+        &occupier_query.iter().map(|p| p.v).collect(),
+    );
+    let mut rng = thread_rng();
+    let actions = positions
+        .iter()
+        .map(|v| {
+            // randomize movement choices
+            let mut d = rng.gen_range(-10..0);
+            if let Some(path) = &path_to_player {
+                // however prioritze a movement if it leads to the player
+                if path.contains(v) {
+                    d = 5
+                }
+            }
+            (
+                Box::new(WalkAction {
+                    entity: *entity,
+                    destination: *v,
+                }) as Box<dyn super::Action>,
+                MOVE_SCORE + d,
+            )
+        })
+        .collect::<Vec<_>>();
+    actor.0.extend(actions);
 }
