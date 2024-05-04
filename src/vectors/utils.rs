@@ -98,7 +98,7 @@ pub fn a_star_pathfinding(
             if blockers.contains(&n) && n != end {
                 continue;
             } // If the node is non-traversable, skip it
-            let estimated_total_cost = new_cost + n.manhattan(end);
+            let estimated_total_cost = new_cost + n.manhattan(end) as u32;
 
             match visited.get(&n) {
                 Some(c) if *c <= new_cost => (), // if the node has not been visited, or the new cost is lower than the established cost, update the visited cost, add the neightbor into the queue and update the came from hashmap

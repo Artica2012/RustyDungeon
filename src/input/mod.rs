@@ -36,11 +36,11 @@ fn player_position(
     mut ev_input: EventWriter<PlayerInputReadyEvent>,
 ) {
     // println!("{:?}", keys);
-    if let x = keys.get_just_pressed() {
-        for i in x.into_iter() {
-            println!("{:?}", i);
-        }
-    }
+    // if let x = keys.get_just_pressed() {
+    //     for i in x.into_iter() {
+    //         println!("{:?}", i);
+    //     }
+    // }
 
     let Ok((entity, position, mut actor)) = player_query.get_single_mut() else {
         println!("Bad Input Query");
@@ -48,13 +48,10 @@ fn player_position(
     };
 
     for (key, dir) in DIR_KEY_MAPPING {
-        if keys.just_pressed(key) {
-            println!("{:?} Presed", key);
-        }
         if !keys.just_pressed(key) {
             continue;
         }
-        println!("Key Pressed {:?}", dir);
+        // println!("Key Pressed {:?}", dir);
         let action = WalkAction {
             entity: entity,
             destination: position.v + dir,

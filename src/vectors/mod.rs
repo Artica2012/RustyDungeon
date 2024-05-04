@@ -18,11 +18,9 @@ impl Vector2Int {
         Self { x, y }
     }
 
-    pub fn manhattan(&self, other: Vector2Int) -> u32 {
+    pub fn manhattan(&self, other: Vector2Int) -> i32 {
+        // println!("{} - {}, {} -{}" ,self.x, other.x, self.y, other.y);
         ((self.x - other.x).abs() + (self.y - other.y).abs())
-            .abs()
-            .try_into()
-            .unwrap()
     }
 }
 

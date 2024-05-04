@@ -1,13 +1,14 @@
 use bevy::prelude::*;
 use rand::prelude::*;
 
-use crate::actions::models::WalkAction;
+use crate::actions::models::{MeleeHitAction, WalkAction};
 use crate::actions::{
     ActionsCompleteEvent, Actor, ActorQueue, InvalidPlayerActionEvent, NextActorEvent,
+    PendingActions,
 };
 use crate::board::components::Position;
 use crate::board::CurrentBoard;
-use crate::pieces::components::{Occupier, Walk};
+use crate::pieces::components::{Melee, Occupier, Walk};
 use crate::player::Player;
 use crate::vectors::utils::a_star_pathfinding;
 use crate::vectors::ORTHO_DIRECTIONS;
@@ -15,10 +16,17 @@ use crate::vectors::ORTHO_DIRECTIONS;
 pub const MOVE_SCORE: i32 = 50;
 pub const ATTACK_SCORE: i32 = 100;
 
+pub const PLAYER_ATTACK_SCORE: i32 = 100;
+
 pub fn process_action_queue(world: &mut World) {
+    if process_pending_actions(world) {
+        return;
+    }
+
     let Some(mut queue) = world.get_resource_mut::<ActorQueue>() else {
         return;
     };
+
     let Some(entity) = queue.0.pop_front() else {
         world.send_event(ActionsCompleteEvent);
         return;
@@ -31,9 +39,16 @@ pub fn process_action_queue(world: &mut World) {
     // highest score first
     possible_actions.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
 
+    for x in &possible_actions {
+        info! {"{:?}", x.1 }
+    }
+
     let mut success = false;
     for action in possible_actions {
-        if action.0.execute(world) {
+        if let Ok(result) = action.0.execute(world) {
+            if let Some(mut pending) = world.get_resource_mut::<PendingActions>() {
+                pending.0 = result;
+            }
             success = true;
             break;
         }
@@ -50,6 +65,24 @@ pub fn populate_actor_queue(
     mut queue: ResMut<ActorQueue>,
 ) {
     queue.0.extend(query.iter());
+}
+
+fn process_pending_actions(world: &mut World) -> bool {
+    let pending = match world.get_resource_mut::<PendingActions>() {
+        Some(mut res) => res.0.drain(..).collect::<Vec<_>>(),
+        _ => return false,
+    };
+    let mut next = Vec::new();
+    let mut success = false;
+    for action in pending {
+        if let Ok(result) = action.execute(world) {
+            next.extend(result);
+            success = true;
+        }
+    }
+    let mut res = world.get_resource_mut::<PendingActions>().unwrap();
+    res.0 = next;
+    success
 }
 
 pub fn plan_walk(
@@ -101,4 +134,26 @@ pub fn plan_walk(
         })
         .collect::<Vec<_>>();
     actor.0.extend(actions);
+}
+
+pub fn plan_melee(
+    mut query: Query<(&mut Actor, &Melee)>,
+    player_query: Query<&Position, With<Player>>,
+    queue: Res<ActorQueue>,
+) {
+    let Some(entity) = queue.0.get(0) else { return };
+    let Ok((mut actor, melee)) = query.get_mut(*entity) else {
+        return;
+    };
+    let Ok(player_position) = player_query.get_single() else {
+        return;
+    };
+    let action = Box::new(MeleeHitAction {
+        attacker: *entity,
+        target: player_position.v,
+        damage: melee.damage,
+    });
+    actor
+        .0
+        .push((action, PLAYER_ATTACK_SCORE + melee.damage as i32))
 }
