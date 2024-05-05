@@ -4,7 +4,8 @@ use bevy::prelude::*;
 
 use crate::actions::{models::WalkAction, Actor, ActorQueue};
 use crate::board::components::Position;
-use crate::player::Player;
+use crate::player::cards::{DeckEvent, DeckEventKind};
+use crate::player::{Deck, Player};
 use crate::states::GameState;
 use crate::vectors::Vector2Int;
 
@@ -14,7 +15,7 @@ impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PlayerInputReadyEvent>().add_systems(
             Update,
-            player_position.run_if(in_state(GameState::PlayerInput)),
+            player_input.run_if(in_state(GameState::PlayerInput)),
         );
     }
 }
@@ -29,19 +30,13 @@ const DIR_KEY_MAPPING: [(KeyCode, Vector2Int); 4] = [
 #[derive(Event)]
 pub struct PlayerInputReadyEvent;
 
+//Depreciated
 fn player_position(
     mut keys: Res<ButtonInput<KeyCode>>,
     mut player_query: Query<(Entity, &Position, &mut Actor), With<Player>>,
     mut queue: ResMut<ActorQueue>,
     mut ev_input: EventWriter<PlayerInputReadyEvent>,
 ) {
-    // println!("{:?}", keys);
-    // if let x = keys.get_just_pressed() {
-    //     for i in x.into_iter() {
-    //         println!("{:?}", i);
-    //     }
-    // }
-
     let Ok((entity, position, mut actor)) = player_query.get_single_mut() else {
         println!("Bad Input Query");
         return;
@@ -59,5 +54,34 @@ fn player_position(
         actor.0 = vec![(Box::new(action), 0)];
         queue.0 = VecDeque::from([entity]);
         ev_input.send(PlayerInputReadyEvent);
+    }
+}
+
+fn player_input(
+    keys: Res<ButtonInput<KeyCode>>,
+    mut player_query: Query<&Position, With<Player>>,
+    deck: Res<Deck>,
+    mut ev_deck: EventWriter<DeckEvent>,
+) {
+    let Ok(position) = player_query.get_single_mut() else {
+        return;
+    };
+    for (key, dir) in DIR_KEY_MAPPING {
+        if !keys.just_pressed(key) {
+            continue;
+        }
+        ev_deck.send(DeckEvent(DeckEventKind::UseCard(Some(position.v + dir))));
+    }
+
+    if keys.just_pressed(KeyCode::Digit1) {
+        if let Some(entity) = deck.cards.get(0) {
+            ev_deck.send(DeckEvent(DeckEventKind::SelectCard(*entity)));
+        }
+    }
+
+    if keys.just_pressed(KeyCode::Digit2) {
+        if let Some(entity) = deck.cards.get(1) {
+            ev_deck.send(DeckEvent(DeckEventKind::SelectCard(*entity)));
+        }
     }
 }

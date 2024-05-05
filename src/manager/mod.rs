@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use crate::actions::{ActionsCompleteEvent, InvalidPlayerActionEvent, TickEvent};
 use crate::graphics::GraphicsWaitEvent;
 use crate::input::PlayerInputReadyEvent;
+use crate::player::cards::PlayerActionEvent;
 use crate::states::{GameState, MainState};
 
 pub struct ManagerPlugin;
@@ -13,7 +14,7 @@ impl Plugin for ManagerPlugin {
             .add_systems(OnExit(MainState::Game), game_end)
             .add_systems(
                 Update,
-                turn_update_start.run_if(on_event::<PlayerInputReadyEvent>()),
+                turn_update_start.run_if(on_event::<PlayerActionEvent>()),
             )
             .add_systems(
                 Update,
@@ -40,6 +41,7 @@ fn turn_update_start(
     mut next_state: ResMut<NextState<GameState>>,
     mut ev_tick: EventWriter<TickEvent>,
 ) {
+    info!("Turn Update Start");
     next_state.set(GameState::TurnUpdate);
     ev_tick.send(TickEvent);
 }
@@ -51,6 +53,7 @@ fn tick(mut ev_wait: EventReader<GraphicsWaitEvent>, mut ev_tick: EventWriter<Ti
 }
 
 fn turn_update_end(mut next_state: ResMut<NextState<GameState>>) {
+    info!("Turn Update End");
     next_state.set(GameState::PlayerInput);
 }
 
