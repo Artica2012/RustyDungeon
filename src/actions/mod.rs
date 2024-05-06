@@ -1,3 +1,4 @@
+use std::any::Any;
 use std::collections::VecDeque;
 
 use bevy::ecs::system::ExclusiveSystemParamFunction;
@@ -19,6 +20,7 @@ impl Plugin for ActionPlugin {
             .add_event::<NextActorEvent>()
             .add_event::<ActionsCompleteEvent>()
             .add_event::<InvalidPlayerActionEvent>()
+            .add_event::<ActionExecutedEvent>()
             .configure_sets(
                 Update,
                 (
@@ -46,6 +48,7 @@ enum ActionSet {
 
 pub trait Action: Send + Sync {
     fn execute(&self, world: &mut World) -> Result<Vec<Box<dyn Action>>, ()>;
+    fn as_any(&self) -> &dyn Any;
 }
 
 #[derive(Component, Default)]
@@ -68,3 +71,6 @@ pub struct ActionsCompleteEvent;
 
 #[derive(Event)]
 pub struct InvalidPlayerActionEvent;
+
+#[derive(Event)]
+pub struct ActionExecutedEvent(pub Box<dyn Action>);

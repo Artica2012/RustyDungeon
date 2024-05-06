@@ -3,8 +3,8 @@ use rand::prelude::*;
 
 use crate::actions::models::{MeleeHitAction, WalkAction};
 use crate::actions::{
-    ActionsCompleteEvent, Actor, ActorQueue, InvalidPlayerActionEvent, NextActorEvent,
-    PendingActions,
+    ActionExecutedEvent, ActionsCompleteEvent, Actor, ActorQueue, InvalidPlayerActionEvent,
+    NextActorEvent, PendingActions,
 };
 use crate::board::components::Position;
 use crate::board::CurrentBoard;
@@ -17,6 +17,29 @@ pub const MOVE_SCORE: i32 = 50;
 pub const ATTACK_SCORE: i32 = 100;
 
 pub const PLAYER_ATTACK_SCORE: i32 = 100;
+
+fn execute_action(action: Box<dyn super::Action>, world: &mut World) -> bool {
+    if let Ok(result) = action.execute(world) {
+        if let Some(mut pending) = world.get_resource_mut::<PendingActions>() {
+            pending.0.extend(result);
+        }
+        world.send_event(ActionExecutedEvent(action));
+        return true;
+    }
+    false
+}
+
+fn process_pending_actions(world: &mut World) -> bool {
+    let pending = match world.get_resource_mut::<PendingActions>() {
+        Some(mut res) => res.0.drain(..).collect::<Vec<_>>(),
+        _ => return false,
+    };
+    let mut success = false;
+    for action in pending {
+        success = success || execute_action(action, world);
+    }
+    success
+}
 
 pub fn process_action_queue(world: &mut World) {
     if process_pending_actions(world) {
@@ -39,20 +62,18 @@ pub fn process_action_queue(world: &mut World) {
     // highest score first
     possible_actions.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
 
-    for x in &possible_actions {
-        info! {"{:?}", x.1 }
-    }
+    // for x in &possible_actions {
+    //     info! {"{:?}", x.1 }
+    // }
 
     let mut success = false;
     for action in possible_actions {
-        if let Ok(result) = action.0.execute(world) {
-            if let Some(mut pending) = world.get_resource_mut::<PendingActions>() {
-                pending.0 = result;
-            }
-            success = true;
+        success = success || execute_action(action.0, world);
+        if success {
             break;
         }
     }
+
     if !success && world.get::<Player>(entity).is_some() {
         world.send_event(InvalidPlayerActionEvent);
         return;
@@ -65,24 +86,6 @@ pub fn populate_actor_queue(
     mut queue: ResMut<ActorQueue>,
 ) {
     queue.0.extend(query.iter());
-}
-
-fn process_pending_actions(world: &mut World) -> bool {
-    let pending = match world.get_resource_mut::<PendingActions>() {
-        Some(mut res) => res.0.drain(..).collect::<Vec<_>>(),
-        _ => return false,
-    };
-    let mut next = Vec::new();
-    let mut success = false;
-    for action in pending {
-        if let Ok(result) = action.execute(world) {
-            next.extend(result);
-            success = true;
-        }
-    }
-    let mut res = world.get_resource_mut::<PendingActions>().unwrap();
-    res.0 = next;
-    success
 }
 
 pub fn plan_walk(

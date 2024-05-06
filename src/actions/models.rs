@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use bevy::prelude::{info, Entity, With, World};
 
 use crate::actions::Action;
@@ -31,6 +33,10 @@ impl Action for WalkAction {
         position.v = self.destination;
         Ok(Vec::new())
     }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
 }
 
 pub struct MeleeHitAction {
@@ -48,7 +54,7 @@ impl Action for MeleeHitAction {
         let attacker_position = world.get::<Position>(self.attacker).ok_or(())?;
         println!("Didn't error");
         println!("Distance: {}", attacker_position.v.manhattan(self.target));
-        if attacker_position.v.manhattan(self.target) > 2 {
+        if attacker_position.v.manhattan(self.target) > 1 {
             return Err(());
         };
 
@@ -73,6 +79,10 @@ impl Action for MeleeHitAction {
         info!("Hit!");
         Ok(result)
     }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
 }
 
 pub struct DamageAction {
@@ -94,5 +104,9 @@ impl Action for DamageAction {
         }
 
         Ok(Vec::new())
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
