@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
 
@@ -5,6 +7,7 @@ use crate::graphics::GraphicsAssets;
 use crate::states::MainState;
 
 const ATLAS_PATH: &str = "sprites/ascii.png";
+const TEXTURES: [&str; 1] = ["card"];
 
 pub struct AssetPlugin;
 
@@ -32,8 +35,9 @@ pub fn load_textures(
     mut asset_list: ResMut<AssetList>,
     mut texture_atlases: ResMut<Assets<TextureAtlasLayout>>,
 ) {
+    //Textures
     println!("Loading Textures");
-    commands.insert_resource((RPGSpriteFolder(asset_server.load_folder(("sprites")))));
+    commands.insert_resource(RPGSpriteFolder(asset_server.load_folder(("sprites"))));
 
     let texture = asset_server.load(ATLAS_PATH);
     asset_list.0.push(texture.clone().untyped());
@@ -44,7 +48,20 @@ pub fn load_textures(
     commands.insert_resource(GraphicsAssets {
         atlas: handle,
         sprite_texture: texture.clone(),
-    })
+    });
+
+    //UI
+    println!("Loading UI Assets");
+    let font = asset_server.load("ui/04B_03.ttf");
+    asset_list.0.push(font.clone().untyped());
+
+    let mut textures = HashMap::new();
+    for name in TEXTURES {
+        let handle = asset_server.load(format!("ui/{}.png", name));
+        asset_list.0.push(handle.clone().untyped());
+        textures.insert(name, handle);
+    }
+    commands.insert_resource(UiAssets { textures, font })
 }
 
 fn check_textures(
@@ -64,38 +81,8 @@ fn check_textures(
 #[derive(Default, Resource)]
 pub struct AssetList(pub Vec<UntypedHandle>); //HandleUntyped was changed to UntypedHandle in .12: https://bevyengine.org/learn/migration-guides/0-11-to-0-12/
 
-// pub fn check_asset_loading(
-//     asset_server: Res<AssetServer>,
-//     asset_list: Res<AssetList>,
-//     mut next_state: ResMut<NextState<MainState>>,
-//     mut events: EventReader<AssetEvent<Image>>,
-// ) {
-//     // todo!("There is a better way to do this with events.")
-//     // println!("Waiting for an event");
-//     // let mut loaded = false; // Had to rewrite this setion, as the entire API was changed in .12: https://bevyengine.org/learn/migration-guides/0-11-to-0-12/
-//     //
-//     // for asset in asset_list.0.iter() {
-//     //     let id = asset.id();
-//     //     loaded = asset_server.is_loaded_with_dependencies(asset.id());
-//     // }
-//     // if loaded {
-//     //     next_state.set(MainState::Game);
-//     // } else {
-//     //     error!("asset loading error")
-//     // }
-//
-//     for event in events.read(){
-//         match event {
-//             AssetEvent::LoadedWithDependencies{id:_}=>{
-//                 next_state.set(MainState::Game)
-//             }
-//             _ => {println!("{:?}", event)}
-//         }
-//         // if let AssetEvent::LoadedWithDependencies {id:_} = event {
-//         //     println!("Asset Loaded");
-//         //     next_state.set(MainState::Game);
-//         // } else {
-//         //     println!("Asset Not Loaded");
-//         // }
-//     }
-// }
+#[derive(Resource)]
+pub struct UiAssets {
+    pub font: Handle<Font>,
+    pub textures: HashMap<&'static str, Handle<Image>>,
+}

@@ -72,16 +72,4 @@ fn player_input(
         }
         ev_deck.send(DeckEvent(DeckEventKind::UseCard(Some(position.v + dir))));
     }
-
-    if keys.just_pressed(KeyCode::Digit1) {
-        if let Some(entity) = deck.cards.get(0) {
-            ev_deck.send(DeckEvent(DeckEventKind::SelectCard(*entity)));
-        }
-    }
-
-    if keys.just_pressed(KeyCode::Digit2) {
-        if let Some(entity) = deck.cards.get(1) {
-            ev_deck.send(DeckEvent(DeckEventKind::SelectCard(*entity)));
-        }
-    }
 }
