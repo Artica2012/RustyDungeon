@@ -7,6 +7,7 @@ use crate::states::MainState;
 use crate::vectors::Vector2Int;
 
 pub mod components;
+mod dungeon;
 mod systems;
 
 pub struct BoardPlugin;
