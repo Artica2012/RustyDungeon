@@ -16,7 +16,11 @@ impl Plugin for UiPlugin {
             .add_systems(Update, helpers::button_click_animation)
             .add_systems(OnEnter(GameState::PlayerInput), player_input_start)
             .add_systems(PostUpdate, draw_deck.run_if(on_event::<ReloadUiEvent>()))
-            .add_systems(Update, card_click.run_if(in_state(GameState::PlayerInput)));
+            // .add_systems(PostUpdate, draw_deck)
+            .add_systems(
+                PreUpdate,
+                card_click.run_if(in_state(GameState::PlayerInput)),
+            );
     }
 }
 

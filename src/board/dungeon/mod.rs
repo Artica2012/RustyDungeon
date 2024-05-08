@@ -6,7 +6,7 @@ pub use area::Area;
 use crate::vectors::Vector2Int;
 
 mod area;
-mod room;
+pub mod room;
 pub mod tunneler;
 
 const AREA_SPACING: i32 = 4;
