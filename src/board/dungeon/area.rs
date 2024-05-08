@@ -68,4 +68,32 @@ impl Area {
     pub fn join_rooms(&self, a: &Room, b: &Room) -> Vec<Vector2Int> {
         self.tunnler.connect(a.random_point(), b.random_point())
     }
+
+    fn find_closest_room_pair<'a>(&'a self, other: &'a Area) -> (&'a Room, &'a Room) {
+        let mut pairs = Vec::new();
+        for ra in self.rooms.iter() {
+            for rb in other.rooms.iter() {
+                let d = ra
+                    .corners()
+                    .iter()
+                    .map(|ca| {
+                        rb.corners()
+                            .iter()
+                            .map(|cb| ca.manhattan(*cb))
+                            .collect::<Vec<_>>()
+                    })
+                    .flatten()
+                    .min()
+                    .unwrap();
+                pairs.push((d, ra, rb));
+            }
+        }
+        pairs.sort_by(|a, b| a.0.cmp(&b.0));
+        (pairs[0].1, pairs[0].2)
+    }
+
+    pub fn join_area(&self, other: &Area) -> Vec<Vector2Int> {
+        let rooms = self.find_closest_room_pair(other);
+        self.join_rooms(rooms.0, rooms.1)
+    }
 }
