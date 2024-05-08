@@ -34,7 +34,7 @@ impl Plugin for ManagerPlugin {
 }
 
 fn game_start(mut next_state: ResMut<NextState<GameState>>) {
-    println!("Starting Game");
+    println!("Listening for Input at Game Start");
     next_state.set(GameState::PlayerInput);
 }
 

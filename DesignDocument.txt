@@ -1,0 +1,33 @@
+Design Document
+
+Title: Rusty Dungeons (Working Title)
+
+Turn based Roguelike card  battler written in rust
+
+Ideas:
+Action points. Skill/Spell cards. Collectable.
+At least three classes.
+X amount of points/turn. Use for movement or skills/spells/attacks.
+
+Mouse Input. Click to move.
+
+Field of view (? Shadowcasting?)
+  - Needs two components (Blocks_movement and Blocks_sight)
+
+Procedurally generated maps.
+
+Random item drops.
+
+Skill levels?
+
+Classes:
+   Fighter - Melee fighter. Has armor (reduced incoming damage by X amount)
+   Mage - Ranged Spellcaster. Has a magic shield which absorbs all damage, but low total. Regenerates over time.
+  Rogue/Theif - Melee or Range. Dodge - X% chance to avoid all damage.
+
+
+Lifespan component. Value that ticks down before the players turn. Can be used for limited lifespan things, like summoned fog our barriers. Or limited lifespan skill effects perhaps?
+
+Stretch goals:
+Town hub
+Genetic algorithm ai

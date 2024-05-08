@@ -6,6 +6,7 @@ pub trait Tunneler {
     fn connect(&self, a: Vector2Int, b: Vector2Int) -> Vec<Vector2Int>;
 }
 
+#[derive(Copy, Clone)]
 pub struct LShapeTunneler;
 
 impl Tunneler for LShapeTunneler {
@@ -26,7 +27,11 @@ impl Tunneler for LShapeTunneler {
         [ver, hor].concat()
     }
 }
+//
+// impl Send for LShapeTunneler{}
+// impl Sync for LShapeTunneler{}
 
+#[derive(Copy, Clone)]
 pub struct RandomTunneler;
 
 impl Tunneler for RandomTunneler {
@@ -53,3 +58,6 @@ impl Tunneler for RandomTunneler {
         path
     }
 }
+
+// impl Send for RandomTunneler{}
+// impl Sync for RandomTunneler{}

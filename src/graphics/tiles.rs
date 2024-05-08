@@ -9,13 +9,13 @@ pub fn spawn_tile_renderer(
     query: Query<(Entity, &Position), With<Tile>>,
     assets: Res<GraphicsAssets>,
 ) {
-    println! {"Starting to spawn tiles"}
-    println!("{:?}", query);
+    println! {"Starting to spawn tiles"};
+    // println!("{:?}", query);
     for (entity, position) in query.iter() {
         let v = super::get_world_position(&position, TILE_Z);
-        println!("{:?}", v);
+        // println!("{:?}", v);
 
-        println!("Spawning Tile Entity");
+        // println!("Spawning Tile Entity");
         commands.entity(entity).insert(SpriteSheetBundle {
             sprite: Sprite {
                 color: Color::GOLD,

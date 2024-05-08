@@ -1,0 +1,15 @@
+To Do list:
+
+
+DONE: 1. Spawn Player and monsters in valid map squares.
+2. Change input method to mouse input
+3. Implement Field of View (Shadow Casting)
+- Non-visible entities should update instantly instead of animating to save time. (Or not move at all)
+4. Camera Improvements (Moving and Zooming)
+5. Ranged Attacks (Ray Tracing)
+6. Alternative Map Generators
+7. Additional Attacks
+8. Health bars
+9. Classes
+10. More Monster Variety
+11. Items

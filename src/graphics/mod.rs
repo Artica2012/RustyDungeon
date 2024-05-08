@@ -2,7 +2,7 @@ use bevy::app::App;
 use bevy::app::Update;
 use bevy::asset::Handle;
 use bevy::ecs::event::Event;
-use bevy::prelude::{Image, IntoSystemConfigs, OnEnter, Plugin, Resource, Vec3};
+use bevy::prelude::{Image, IntoSystemConfigs, OnExit, Plugin, Resource, Vec3};
 use bevy::sprite::TextureAtlasLayout;
 
 use crate::board::components::Position;
@@ -34,8 +34,8 @@ pub struct GraphicsPlugin;
 impl Plugin for GraphicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<GraphicsWaitEvent>()
-            .add_systems(OnEnter(MainState::Game), pieces::spawn_piece_renderer)
-            .add_systems(OnEnter(MainState::Game), tiles::spawn_tile_renderer)
+            .add_systems(OnExit(MainState::GenerateMap), pieces::spawn_piece_renderer)
+            .add_systems(OnExit(MainState::GenerateMap), tiles::spawn_tile_renderer)
             // .add_systems(Update, update_piece_position.in_set(MainState::Game))
             .add_systems(
                 Update,

@@ -66,14 +66,14 @@ impl Room {
     }
 }
 
-pub struct BuggleGenerator {
+pub struct BubbleGenerator {
     pub room_count: (u32, u32),
     pub room_size: (u32, u32),
     pub room_padding: Option<u32>,
     pub extra_connection_chance: f64,
 }
 
-impl BuggleGenerator {
+impl BubbleGenerator {
     fn random_dim(&self) -> (i32, i32) {
         let mut rng = thread_rng();
         (
@@ -83,7 +83,7 @@ impl BuggleGenerator {
     }
 }
 
-impl RoomGenerator for BuggleGenerator {
+impl RoomGenerator for BubbleGenerator {
     fn generate(&self) -> GeneratorResult {
         let mut rng = thread_rng();
         let mut connections = Vec::new();
@@ -128,3 +128,7 @@ impl RoomGenerator for BuggleGenerator {
         GeneratorResult { rooms, connections }
     }
 }
+
+// impl Sync for BubbleGenerator{}
+//
+// impl Send for BubbleGenerator {}

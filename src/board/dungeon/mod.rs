@@ -1,8 +1,11 @@
 use std::collections::HashSet;
 use std::vec::Vec;
 
+use bevy::prelude::Resource;
+
 pub use area::Area;
 
+use crate::board::dungeon::tunneler::{LShapeTunneler, RandomTunneler, Tunneler};
 use crate::vectors::Vector2Int;
 
 mod area;
@@ -11,6 +14,7 @@ pub mod tunneler;
 
 const AREA_SPACING: i32 = 4;
 
+#[derive(Resource)]
 pub struct Dungeon {
     pub areas: Vec<Area>,
     grid: Vec<Vec<usize>>,
@@ -34,8 +38,13 @@ impl Dungeon {
     }
 
     pub fn generate(&mut self) {
-        for area in self.areas.iter_mut() {
-            area.generate_rooms();
+        for (idx, area) in self.areas.iter_mut().enumerate() {
+            let tun = match idx % 2 {
+                0 => Box::new(LShapeTunneler) as Box<dyn Tunneler>,
+                _ => Box::new(RandomTunneler) as Box<dyn Tunneler>,
+            };
+
+            area.generate_rooms(tun, Area::get_room_generator());
         }
         self.position_areas();
         self.connect_areas();
@@ -98,7 +107,7 @@ impl Dungeon {
             }
         }
         for pair in pairs {
-            let path = self.areas[*pair.0].join_area(&self.areas[pair.1]);
+            let path = self.areas[*pair.0].join_area(&self.areas[pair.1], Box::new(RandomTunneler));
             self.areas[*pair.0].paths.push(path);
         }
     }

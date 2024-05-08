@@ -3,22 +3,23 @@ use std::collections::HashSet;
 use crate::board::dungeon::tunneler::Tunneler;
 use crate::vectors::Vector2Int;
 
-use super::room::{Room, RoomGenerator};
+use super::room::{BubbleGenerator, Room, RoomGenerator};
 
 pub struct Area {
     pub rooms: Vec<Room>,
     pub paths: Vec<Vec<Vector2Int>>,
-    pub tunnler: Box<dyn Tunneler>,
-    pub room_generator: Box<dyn RoomGenerator>,
+    // pub tunnler: Box<dyn Tunneler>,
+    // pub room_generator: Box<dyn RoomGenerator>,
 }
 
 impl Area {
-    pub fn new(tunnler: Box<dyn Tunneler>, room_generator: Box<dyn RoomGenerator>) -> Self {
+    // pub fn new(tunnler: Box<dyn Tunneler>, room_generator: Box<dyn RoomGenerator>) -> Self {
+    pub fn new() -> Self {
         Self {
             rooms: Vec::new(),
             paths: Vec::new(),
-            tunnler,
-            room_generator,
+            // tunnler,
+            // room_generator,
         }
     }
 
@@ -50,14 +51,28 @@ impl Area {
         }
     }
 
-    pub fn generate_rooms(&mut self) {
-        let result = self.room_generator.generate();
+    pub fn generate_rooms(
+        &mut self,
+        tunnler: Box<dyn Tunneler>,
+        room_generator: Box<dyn RoomGenerator>,
+    ) {
+        let result = room_generator.generate();
         self.rooms = result.rooms;
         self.paths = result
             .connections
             .iter()
-            .map(|a| self.join_rooms(&self.rooms[a.0], &self.rooms[a.1]))
+            .map(|a| self.join_rooms(&self.rooms[a.0], &self.rooms[a.1], &tunnler))
             .collect();
+    }
+
+    //Made this a function to make it easier to tweak the setting. Probably add some sort a randomization to it in the future
+    pub fn get_room_generator() -> Box<dyn RoomGenerator> {
+        Box::new(BubbleGenerator {
+            room_count: (3, 5),
+            room_size: (4, 8),
+            room_padding: Some(2),
+            extra_connection_chance: 0.25,
+        }) as Box<dyn RoomGenerator>
     }
 
     pub fn to_tiles(&self) -> HashSet<Vector2Int> {
@@ -69,8 +84,8 @@ impl Area {
             .collect()
     }
 
-    pub fn join_rooms(&self, a: &Room, b: &Room) -> Vec<Vector2Int> {
-        self.tunnler.connect(a.random_point(), b.random_point())
+    pub fn join_rooms(&self, a: &Room, b: &Room, tunnler: &Box<dyn Tunneler>) -> Vec<Vector2Int> {
+        tunnler.connect(a.random_point(), b.random_point())
     }
 
     fn find_closest_room_pair<'a>(&'a self, other: &'a Area) -> (&'a Room, &'a Room) {
@@ -96,8 +111,8 @@ impl Area {
         (pairs[0].1, pairs[0].2)
     }
 
-    pub fn join_area(&self, other: &Area) -> Vec<Vector2Int> {
+    pub fn join_area(&self, other: &Area, tunneler: Box<dyn Tunneler>) -> Vec<Vector2Int> {
         let rooms = self.find_closest_room_pair(other);
-        self.join_rooms(rooms.0, rooms.1)
+        self.join_rooms(rooms.0, rooms.1, &tunneler)
     }
 }

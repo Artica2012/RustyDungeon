@@ -4,10 +4,11 @@ use bevy::prelude::*;
 
 use crate::actions::{Actor, ActorQueue};
 use crate::board::components::Position;
+use crate::board::dungeon::Dungeon;
 use crate::pieces::components::{Health, Piece};
 use crate::player::cards::{DeckEvent, DeckEventKind, PlayerActionEvent};
+use crate::states;
 use crate::states::MainState;
-use crate::vectors::Vector2Int;
 
 pub mod cards;
 
@@ -18,7 +19,13 @@ impl Plugin for PlayerPlugin {
         app.insert_resource(Deck::default())
             .add_event::<PlayerActionEvent>()
             .add_event::<DeckEvent>()
-            .add_systems(OnExit(MainState::LoadAssets), spawn_player)
+            .add_systems(OnEnter(MainState::GenerateMap), spawn_player)
+            .add_systems(
+                Update,
+                states::start_game_state
+                    .after(spawn_player)
+                    .run_if(in_state(MainState::GenerateMap)),
+            )
             .add_systems(Update, dispatch_card.run_if(on_event::<DeckEvent>()))
             .add_systems(Update, select_card.run_if(on_event::<DeckEvent>()));
     }
@@ -33,7 +40,7 @@ pub struct Deck {
 #[derive(Component)]
 pub struct Player;
 
-fn spawn_player(mut commands: Commands) {
+fn spawn_player(mut commands: Commands, dungeon: Res<Dungeon>) {
     let walk_card = commands
         .spawn(cards::CardHolder(Box::new(cards::WalkCard)))
         .id();
@@ -46,14 +53,14 @@ fn spawn_player(mut commands: Commands) {
         ..default()
     });
 
+    let starting_loc = dungeon.areas[0].rooms[0].random_point();
+
     commands.spawn((
         Player,
         Piece {
             kind: "Player".to_string(),
         },
-        Position {
-            v: Vector2Int::new(0, 0),
-        },
+        Position { v: starting_loc },
         Actor::default(),
         Health { value: 20 },
     ));

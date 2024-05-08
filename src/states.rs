@@ -5,7 +5,13 @@ use bevy::prelude::*;
 pub enum MainState {
     #[default]
     LoadAssets,
+    GenerateMap,
     Game,
+}
+
+pub fn start_game_state(mut next_state: ResMut<NextState<MainState>>) {
+    println!("Starting Game State");
+    next_state.set(MainState::Game)
 }
 
 #[derive(Clone, Debug, Default, Hash, Eq, States, PartialEq, SystemSet)]

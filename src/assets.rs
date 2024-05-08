@@ -73,7 +73,7 @@ fn check_textures(
         println!("{:?}", event);
         if event.is_loaded_with_dependencies(&rpgsprite_folder.0) {
             println!("Advancing State to: Game");
-            next_state.set(MainState::Game)
+            next_state.set(MainState::GenerateMap)
         }
     }
 }
